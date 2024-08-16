@@ -33,6 +33,20 @@ str(gral)
 
 tabla <- group_by(gral,state, locality, site) %>% summarise(n())
 tabla_yr <- group_by(gral,state, locality, site, yr) %>% summarise(n())
+tabla_strata <- group_by(gral,state,locality,site,yr,strata) %>% summarise(n()) %>% 
+  filter(state != "BUENOS AIRES") %>% filter(yr == "2023")
+
+# fabrico selección de datos para usar en el tp Eco Com 2024
+# solo 2023
+# sin BsAs, locality por provincia vinculada a APN
+# RN - Islote Lobos
+# CH - PIMCPA
+# SC - PNML y PIMM
+
+datos <- gral %>% 
+  filter(yr == 2023) %>% 
+  filter(locality == "ISLOTE LOBOS"|locality =="PIMCPA"|locality =="MONTE LEON"|locality =="MAKENKE")
+unique(datos$locality)
 
 names(cob)
 cob <-  cob %>% 
@@ -41,11 +55,18 @@ cob <-  cob %>%
   mutate(fotoID = str_sub(Name, 1,-5))
 
 # fabrico archivo de datos extras, a partir de Name de cob
-cob_gral <- cob %>% left_join(gral) %>% 
-  select(`Annotation status`,4:22,Date, state, locality,site, strata,
-         Latitude, Longitude, yr, fotoID) %>% 
-  column_to_rownames("fotoID")
+# cob_gral <- cob %>% left_join(gral) %>% 
+#   select(`Annotation status`,4:22,Date, state, locality,site, strata,
+#          Latitude, Longitude, yr, fotoID) %>% 
+#   column_to_rownames("fotoID")
 
+# fabrico archivo de datos de cobertura a partir de selección para tp EcoCom2024
+cob_datos <- datos %>% left_join(cob) %>% 
+  select(-`Annotation status`,-`Comments`) %>% 
+  column_to_rownames("fotoID")
+write.csv(cob_datos,"cob_datos.csv", row.names = T)
+
+# LISTO
 
 # para fabricar archivos de datos por especie (19), y transpuesto
 todo <- cob %>% select(-`Image ID`, -`Annotation status`) %>% 
